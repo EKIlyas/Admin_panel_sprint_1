@@ -1,4 +1,4 @@
-from django.core.validators import MinValueValidator
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -57,7 +57,7 @@ class FilmWork(TimeStampedModel):
     creation_date = models.DateField(_('creation date'), null=True)
     certificate = models.CharField(_('certificate'), max_length=255)
     file_path = models.FileField(_('file'), upload_to='film_works/', blank=True)
-    rating = models.FloatField(_('rating'), validators=[MinValueValidator(0)], blank=True)
+    rating = models.FloatField(_('rating'), validators=[MinValueValidator(0), MaxValueValidator(10)], blank=True)
     type = models.CharField(_('type'), max_length=20, choices=FilmworkType.choices)
     genres = models.ManyToManyField(Genre, through='GenreFilmWork')
 
@@ -79,6 +79,9 @@ class PersonFilmWork(models.Model):
 
     class Meta:
         db_table = 'content\".\"person_film_work'
+        constraints = [
+            models.UniqueConstraint(fields=['person', 'film_work', 'role'], name='person_role_film')
+        ]
 
 
 class GenreFilmWork(models.Model):
@@ -89,3 +92,6 @@ class GenreFilmWork(models.Model):
 
     class Meta:
         db_table = 'content\".\"genre_film_work'
+        constraints = [
+            models.UniqueConstraint(fields=['film_work', 'genre'], name='genre_film')
+        ]
